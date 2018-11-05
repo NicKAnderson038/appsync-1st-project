@@ -1,0 +1,96 @@
+service: appsync-1st-project # NOTE: update this with your service name
+
+plugins:
+  - serverless-plugin-include-dependencies
+  - serverless-appsync-plugin
+  - serverless-pseudo-parameters
+
+custom:
+  region: ${opt:region, self:provider.region}
+  myStage: ${opt:stage, self:provider.stage}
+  config: ${file(./config/serviceConfig.yml)}
+  # configSettings: ${file(./env/${self:provider.stage}.yml)}
+  myProfile:
+    dev: default
+    staging: default
+    prod: default
+
+  accountId: #{AWS::AccountId}
+  appSync:
+    name: appsync-1st-project-api
+    # apiKey # only required for update-appsync/delete-appsync
+    authenticationType: API_KEY
+    logConfig:
+      loggingRoleArn: { Fn::GetAtt: [AppSyncLoggingServiceRole, Arn] } # Where AppSyncLoggingServiceRole is a role with CloudWatch Logs write access
+      level: ERROR # Logging Level: NONE | ERROR | ALL
+    mappingTemplatesLocation: # defaults to mapping-templates
+    mappingTemplates:
+      - dataSource: awsLambdaDataSource
+        type: # type name in schema (e.g. Query, Mutation, Subscription)
+        field: getUserInfo
+        request: # request mapping template name
+        response: # response mapping template name
+      - dataSource: DynamoDbEventDS
+        type: Query
+        field: getUserInfo
+        request: # request mapping template name
+        response: # response mapping template name
+    schema: # defaults schema.graphql
+    serviceRole: "AppSyncServiceRole"
+    dataSources:
+      - type: AMAZON_DYNAMODB
+        name: DynamoDbCommentDS
+        description: 'comments dynamo table'
+        config:
+          tableName: { Ref: DynamoDbComment }
+          serviceRoleArn: { Fn::GetAtt: [AppSyncDynamoDBServiceRole, Arn] } # Where AppSyncDynamoDBServiceRole is an IAM role defined in Resources
+      
+      - type: AMAZON_DYNAMODB
+        name: DynamoDbEventDS
+        description: 'events dynamo table'
+        config:
+          tableName: { Ref: DynamoDbEvent }
+          serviceRoleArn: { Fn::GetAtt: [AppSyncDynamoDBServiceRole, Arn] }
+
+      - type: AWS_LAMBDA
+        name: awsLambdaDataSource
+        description: 'Lambda DataSource'
+        config:
+          lambdaFunctionArn: { Fn::GetAtt: [GraphqlLambdaFunction, Arn] } # Where GraphqlLambdaFunction is the lambda function cloudformation resource created by serverless for the serverless function named graphql
+          serviceRoleArn: { Fn::GetAtt: [AppSyncLambdaServiceRole, Arn] } # Where AppSyncLambdaServiceRole is an IAM role defined in Resources
+        
+      
+
+provider:
+  name: aws
+  runtime: nodejs8.10
+  stage: dev
+  profile: ${self:custom.myProfile.${self:custom.myStage}}
+  region: us-east-1
+  environment:
+    # VENDERS_TABLE: "${self:service}-${opt:stage, self:provider.stage}-venders"
+    # STAGES_TABLE: "${self:service}-${opt:stage, self:provider.stage}-stages"
+    COMMENT_TABLE: "AppSyncCommentTable"
+    EVENT_TABLE: "AppSyncEventTable"
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - s3:GetObject
+        - s3:PutObject
+      Resource: "*"
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource:
+        - "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.COMMENT_TABLE}"
+        - "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.EVENT_TABLE}"
+
+functions: ${file(./config/functions.yml)}
+
+resources:
+  Resources: ${file(./config/resources.yml)}
