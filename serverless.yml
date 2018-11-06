@@ -25,16 +25,48 @@ custom:
       level: ERROR # Logging Level: NONE | ERROR | ALL
     mappingTemplatesLocation: # defaults to mapping-templates
     mappingTemplates:
-      - dataSource: awsLambdaDataSource
-        type: # type name in schema (e.g. Query, Mutation, Subscription)
-        field: getUserInfo
-        request: # request mapping template name
-        response: # response mapping template name
+      - dataSource: DynamoDbCommentDS
+        type: Event
+        field: comments
+        request: comments-request-mapping-template.vtl
+        response: comments-response-mapping-template.vtl
+
+      - dataSource: DynamoDbEventDS
+        type: Mutation
+        field: createEvent
+        request: createEvent-request-mapping-template.vtl
+        response: createEvent-response-mapping-template.vtl
+
+      - dataSource: DynamoDbEventDS
+        type: Mutation
+        field: deleteEvent
+        request: deleteEvent-request-mapping-template.vtl
+        response: deleteEvent-response-mapping-template.vtl
+
+      - dataSource: DynamoDbCommentDS
+        type: Mutation
+        field: commentOnEvent
+        request: commentOnEvent-request-mapping-template.vtl
+        response: commentOnEvent-response-mapping-template.vtl
+
       - dataSource: DynamoDbEventDS
         type: Query
-        field: getUserInfo
-        request: # request mapping template name
-        response: # response mapping template name
+        field: getEvent
+        request: getEvent-request-mapping-template.vtl
+        response: getEvent-response-mapping-template.vtl
+
+      - dataSource: DynamoDbEventDS
+        type: Query
+        field: listEvents
+        request: listEvents-request-mapping-template.vtl
+        response: listEvents-response-mapping-template.vtl
+
+      - dataSource: awsLambdaDataSource
+        type: Query
+        field: helloWorld
+        request: helloWorld-request-mapping-template.vtl
+        response: helloWorld-response-mapping-template.vtl
+
     schema: # defaults schema.graphql
     serviceRole: "AppSyncServiceRole"
     dataSources:
@@ -43,7 +75,7 @@ custom:
         description: 'comments dynamo table'
         config:
           tableName: { Ref: DynamoDbComment }
-          serviceRoleArn: { Fn::GetAtt: [AppSyncDynamoDBServiceRole, Arn] } # Where AppSyncDynamoDBServiceRole is an IAM role defined in Resources
+          serviceRoleArn: { Fn::GetAtt: [AppSyncDynamoDBServiceRole, Arn] }
       
       - type: AMAZON_DYNAMODB
         name: DynamoDbEventDS
