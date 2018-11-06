@@ -54,13 +54,14 @@ AppSyncDynamoDBPolicy:
             - { Fn::Join: [ '', [ { Fn::GetAtt: [ DynamoDbEvent, Arn ] }, '/*' ] ] }
 
 # IAM Role for implementing the AppSync / DynamoDB policy
-DynamoDBRole:
+# DynamoDBRole:
+AppSyncDynamoDBServiceRole:
   Type: "AWS::IAM::Role"
   Description: "IAM Role for allowing AppSync to access DynamoDB"
   DependsOn:
     - AppSyncDynamoDBPolicy
   Properties:
-    RoleName: ${self:provider.apiname}-appsync-dynamodb-role
+    RoleName: "DynamoDB-${self:custom.appSync.serviceRole}-Policy"
     ManagedPolicyArns:
       - Ref: AppSyncDynamoDBPolicy
     AssumeRolePolicyDocument:
@@ -73,27 +74,28 @@ DynamoDBRole:
             Service:
               - appsync.amazonaws.com
 
-AppSyncLambdaServiceRole:
-  Type: "AWS::IAM::Role"
-  Properties:
-    RoleName: "Lambda-${self:custom.appSync.serviceRole}"
-    AssumeRolePolicyDocument:
-      Version: "2012-10-17"
-      Statement:
-        - Effect: "Allow"
-          Principal:
-            Service:
-              - "appsync.amazonaws.com"
-            Action:
-              - "sts:AssumeRole"
-    Policies:
-      - PolicyName: "Lambda-${self:custom.appSync.serviceRole}-Policy"
-        PolicyDocument:
-          Version: "2012-10-17"
-          Statement:
-            - Effect: "Allow"
-              Action:
-                - "lambda:invokeFunction"
-              Resource:
-                - "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-dev-graphql"
-                - "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-dev-graphql:*"
+# Lambda Resource Integration
+# AppSyncLambdaServiceRole:
+#   Type: "AWS::IAM::Role"
+#   Properties:
+#     RoleName: "Lambda-${self:custom.appSync.serviceRole}"
+#     AssumeRolePolicyDocument:
+#       Version: "2012-10-17"
+#       Statement:
+#         - Effect: "Allow"
+#           Principal:
+#             Service:
+#               - "appsync.amazonaws.com"
+#             Action:
+#               - "sts:AssumeRole"
+#     Policies:
+#       - PolicyName: "Lambda-${self:custom.appSync.serviceRole}-Policy"
+#         PolicyDocument:
+#           Version: "2012-10-17"
+#           Statement:
+#             - Effect: "Allow"
+#               Action:
+#                 - "lambda:invokeFunction"
+#               Resource:
+#                 - "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-dev-graphql"
+#                 - "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-dev-graphql:*"

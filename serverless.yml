@@ -20,9 +20,9 @@ custom:
     name: appsync-1st-project-api
     # apiKey # only required for update-appsync/delete-appsync
     authenticationType: API_KEY
-    logConfig:
-      loggingRoleArn: { Fn::GetAtt: [AppSyncLoggingServiceRole, Arn] } # Where AppSyncLoggingServiceRole is a role with CloudWatch Logs write access
-      level: ERROR # Logging Level: NONE | ERROR | ALL
+    # logConfig:
+    #   loggingRoleArn: { Fn::GetAtt: [AppSyncLoggingServiceRole, Arn] } # Where AppSyncLoggingServiceRole is a role with CloudWatch Logs write access
+    #   level: ERROR # Logging Level: NONE | ERROR | ALL
     mappingTemplatesLocation: # defaults to mapping-templates
     mappingTemplates:
       - dataSource: DynamoDbCommentDS
@@ -61,11 +61,11 @@ custom:
         request: listEvents-request-mapping-template.vtl
         response: listEvents-response-mapping-template.vtl
 
-      - dataSource: awsLambdaDataSource
-        type: Query
-        field: helloWorld
-        request: helloWorld-request-mapping-template.vtl
-        response: helloWorld-response-mapping-template.vtl
+      # - dataSource: awsLambdaDataSource
+      #   type: Query
+      #   field: helloWorld
+      #   request: helloWorld-request-mapping-template.vtl
+      #   response: helloWorld-response-mapping-template.vtl
 
     schema: # defaults schema.graphql
     serviceRole: "AppSyncServiceRole"
@@ -84,12 +84,12 @@ custom:
           tableName: { Ref: DynamoDbEvent }
           serviceRoleArn: { Fn::GetAtt: [AppSyncDynamoDBServiceRole, Arn] }
 
-      - type: AWS_LAMBDA
-        name: awsLambdaDataSource
-        description: 'Lambda DataSource'
-        config:
-          lambdaFunctionArn: { Fn::GetAtt: [GraphqlLambdaFunction, Arn] } # Where GraphqlLambdaFunction is the lambda function cloudformation resource created by serverless for the serverless function named graphql
-          serviceRoleArn: { Fn::GetAtt: [AppSyncLambdaServiceRole, Arn] } # Where AppSyncLambdaServiceRole is an IAM role defined in Resources
+      # - type: AWS_LAMBDA
+      #   name: awsLambdaDataSource
+      #   description: 'Lambda DataSource'
+      #   config:
+      #     lambdaFunctionArn: { Fn::GetAtt: [GraphqlLambdaFunction, Arn] } # Where GraphqlLambdaFunction is the lambda function cloudformation resource created by serverless for the serverless function named graphql
+      #     serviceRoleArn: { Fn::GetAtt: [AppSyncLambdaServiceRole, Arn] } # Where AppSyncLambdaServiceRole is an IAM role defined in Resources
         
       
 
@@ -102,8 +102,8 @@ provider:
   environment:
     # VENDERS_TABLE: "${self:service}-${opt:stage, self:provider.stage}-venders"
     # STAGES_TABLE: "${self:service}-${opt:stage, self:provider.stage}-stages"
-    COMMENT_TABLE: "AppSyncCommentTable"
-    EVENT_TABLE: "AppSyncEventTable"
+    COMMENT_TABLE: "AppSyncCommentTable-q2345"
+    EVENT_TABLE: "AppSyncEventTable-q2345"
   iamRoleStatements:
     - Effect: Allow
       Action:
