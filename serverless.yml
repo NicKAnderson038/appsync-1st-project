@@ -76,6 +76,20 @@ custom:
         config:
           tableName: { Ref: DynamoDbComment }
           serviceRoleArn: { Fn::GetAtt: [AppSyncDynamoDBServiceRole, Arn] }
+          iamRoleStatements: # custom IAM Role statements for this DataSource. Ignored if `serviceRoleArn` is present. Auto-generated if both `serviceRoleArn` and `iamRoleStatements` are omitted
+            - Effect: "Allow"
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:PutItem
+                - dynamodb:DeleteItem
+                - dynamodb:UpdateItem
+                - dynamodb:Query
+                - dynamodb:Scan
+              Resource:
+                # - "arn:aws:dynamodb:{REGION}:{ACCOUNT_ID}:COMMENT_TABLE:"
+                # - "arn:aws:dynamodb:{REGION}:{ACCOUNT_ID}:COMMENT_TABLE:/*"
+                - "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.COMMENT_TABLE}"
+                - "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.COMMENT_TABLE/*}"
       
       - type: AMAZON_DYNAMODB
         name: DynamoDbEventDS
@@ -83,6 +97,20 @@ custom:
         config:
           tableName: { Ref: DynamoDbEvent }
           serviceRoleArn: { Fn::GetAtt: [AppSyncDynamoDBServiceRole, Arn] }
+          iamRoleStatements: # custom IAM Role statements for this DataSource. Ignored if `serviceRoleArn` is present. Auto-generated if both `serviceRoleArn` and `iamRoleStatements` are omitted
+            - Effect: "Allow"
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:PutItem
+                - dynamodb:DeleteItem
+                - dynamodb:UpdateItem
+                - dynamodb:Query
+                - dynamodb:Scan
+              Resource:
+                # - "arn:aws:dynamodb:{REGION}:{ACCOUNT_ID}:EVENT_TABLE:"
+                # - "arn:aws:dynamodb:{REGION}:{ACCOUNT_ID}:EVENT_TABLE:/*"
+                - "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.EVENT_TABLE}"
+                - "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.EVENT_TABLE/*}"
 
       # - type: AWS_LAMBDA
       #   name: awsLambdaDataSource

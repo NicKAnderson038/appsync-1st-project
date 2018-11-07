@@ -50,8 +50,10 @@ AppSyncDynamoDBPolicy:
             - dynamodb:Query
             - dynamodb:Scan
           Resource: 
-            - { Fn::Join: [ '', [ { Fn::GetAtt: [ DynamoDbComment, Arn ] }, '/*' ] ] }
-            - { Fn::Join: [ '', [ { Fn::GetAtt: [ DynamoDbEvent, Arn ] }, '/*' ] ] }
+            # - { Fn::Join: [ '', [ { Fn::GetAtt: [ DynamoDbComment, Arn ] }, '/*' ] ] }
+            # - { Fn::Join: [ '', [ { Fn::GetAtt: [ DynamoDbEvent, Arn ] }, '/*' ] ] }
+            - "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.COMMENT_TABLE}"
+            - "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.EVENT_TABLE}"
 
 # IAM Role for implementing the AppSync / DynamoDB policy
 # DynamoDBRole:
