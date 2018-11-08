@@ -16,8 +16,10 @@ DynamoDbComment:
       ReadCapacityUnits: 1
       WriteCapacityUnits: 1
     Tags:
-      - Key: 'comment-key'
-        Value: 'comment-value'
+      - Key: 'comment-key1'
+        Value: 'comment-value1'
+      - Key: 'comment-key2'
+        Value: 'comment-value2'
     TableName: ${self:provider.environment.COMMENT_TABLE}
 
 DynamoDbEvent:
