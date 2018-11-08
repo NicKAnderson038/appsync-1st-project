@@ -1,4 +1,5 @@
-service: appsync-1st-project # NOTE: update this with your service name
+# service: appsync-1st-project # NOTE: update this with your service name
+service: ${self:custom.config.service-name}
 
 plugins:
   - serverless-plugin-include-dependencies
@@ -37,11 +38,23 @@ custom:
         request: createEvent-request-mapping-template.vtl
         response: createEvent-response-mapping-template.vtl
 
+      # - dataSource: DynamoDbCommentDS
+      #   type: Mutation
+      #   field: createEvent
+      #   request: createEvent-request-mapping-template.vtl
+      #   response: createEvent-response-mapping-template.vtl
+
       - dataSource: DynamoDbEventDS
         type: Mutation
         field: deleteEvent
         request: deleteEvent-request-mapping-template.vtl
         response: deleteEvent-response-mapping-template.vtl
+
+      # - dataSource: DynamoDbCommentDS
+      #   type: Mutation
+      #   field: deleteEvent
+      #   request: deleteEvent-request-mapping-template.vtl
+      #   response: deleteEvent-response-mapping-template.vtl
 
       - dataSource: DynamoDbCommentDS
         type: Mutation
@@ -49,17 +62,35 @@ custom:
         request: commentOnEvent-request-mapping-template.vtl
         response: commentOnEvent-response-mapping-template.vtl
 
+      # - dataSource: DynamoDbEventDS
+      #   type: Mutation
+      #   field: commentOnEvent
+      #   request: commentOnEvent-request-mapping-template.vtl
+      #   response: commentOnEvent-response-mapping-template.vtl
+
       - dataSource: DynamoDbEventDS
         type: Query
         field: getEvent
         request: getEvent-request-mapping-template.vtl
         response: getEvent-response-mapping-template.vtl
 
+      # - dataSource: DynamoDbCommentDS
+      #   type: Query
+      #   field: getEvent
+      #   request: getEvent-request-mapping-template.vtl
+      #   response: getEvent-response-mapping-template.vtl
+
       - dataSource: DynamoDbEventDS
         type: Query
         field: listEvents
         request: listEvents-request-mapping-template.vtl
         response: listEvents-response-mapping-template.vtl
+
+      # - dataSource: DynamoDbCommentDS
+      #   type: Query
+      #   field: listEvents
+      #   request: listEvents-request-mapping-template.vtl
+      #   response: listEvents-response-mapping-template.vtl
 
       # - dataSource: awsLambdaDataSource
       #   type: Query
@@ -90,6 +121,7 @@ custom:
                 # - "arn:aws:dynamodb:{REGION}:{ACCOUNT_ID}:COMMENT_TABLE:/*"
                 - "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.COMMENT_TABLE}"
                 - "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.COMMENT_TABLE/*}"
+               
       
       - type: AMAZON_DYNAMODB
         name: DynamoDbEventDS
@@ -111,6 +143,7 @@ custom:
                 # - "arn:aws:dynamodb:{REGION}:{ACCOUNT_ID}:EVENT_TABLE:/*"
                 - "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.EVENT_TABLE}"
                 - "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.EVENT_TABLE/*}"
+               
 
       # - type: AWS_LAMBDA
       #   name: awsLambdaDataSource
@@ -127,6 +160,9 @@ provider:
   stage: dev
   profile: ${self:custom.myProfile.${self:custom.myStage}}
   region: us-east-1
+  stackTags:
+    STACK: ${self:service}
+    REGION: ${self:custom.region}
   environment:
     # VENDERS_TABLE: "${self:service}-${opt:stage, self:provider.stage}-venders"
     # STAGES_TABLE: "${self:service}-${opt:stage, self:provider.stage}-stages"
@@ -149,6 +185,7 @@ provider:
       Resource:
         - "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.COMMENT_TABLE}"
         - "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.EVENT_TABLE}"
+      
 
 functions: ${file(./config/functions.yml)}
 
