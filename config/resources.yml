@@ -1,11 +1,14 @@
 DynamoDbComment:
   Type: AWS::DynamoDB::Table
+  # DependsOn: DynamoDbEvent
   DeletionPolicy: Retain
   Properties:
     AttributeDefinitions:
       - AttributeName: eventId
         AttributeType: S
       - AttributeName: commentId
+        AttributeType: S
+      - AttributeName: createdAt
         AttributeType: S
     KeySchema:
       - AttributeName: eventId
@@ -21,6 +24,15 @@ DynamoDbComment:
       - Key: 'comment-key2'
         Value: 'comment-value2'
     TableName: ${self:provider.environment.COMMENT_TABLE}
+    LocalSecondaryIndexes:
+      - IndexName: "LSI-AppSyncCommentTable-by-eventId-createdAt"
+        KeySchema:
+          - AttributeName: eventId
+            KeyType: HASH
+          - AttributeName: createdAt
+            KeyType: RANGE
+        Projection:
+          ProjectionType: ALL
 
 DynamoDbEvent:
   Type: AWS::DynamoDB::Table
@@ -57,22 +69,27 @@ AppSyncDynamoDBPolicy:
             - dynamodb:UpdateItem
             - dynamodb:Query
             - dynamodb:Scan
+            - dynamodb:BatchWriteItem
           Resource: 
             # - { Fn::Join: [ '', [ { Fn::GetAtt: [ DynamoDbComment, Arn ] }, '/*' ] ] }
             # - { Fn::Join: [ '', [ { Fn::GetAtt: [ DynamoDbEvent, Arn ] }, '/*' ] ] }
             - "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.COMMENT_TABLE}"
             - "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.EVENT_TABLE}"
+            - "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.COMMENT_TABLE/*}"
+            - "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.EVENT_TABLE/*}"
             
 
 # IAM Role for implementing the AppSync / DynamoDB policy
 # DynamoDBRole:
+# AppSyncServiceRole:
 AppSyncDynamoDBServiceRole:
   Type: "AWS::IAM::Role"
   Description: "IAM Role for allowing AppSync to access DynamoDB"
   DependsOn:
     - AppSyncDynamoDBPolicy
   Properties:
-    RoleName: "DynamoDB-${self:custom.appSync.serviceRole}-Policy"
+    # RoleName: "DynamoDB-${self:custom.appSync.serviceRole}-Policy"
+    RoleName: "${self:custom.appSync.serviceRole}"
     ManagedPolicyArns:
       - Ref: AppSyncDynamoDBPolicy
     AssumeRolePolicyDocument:

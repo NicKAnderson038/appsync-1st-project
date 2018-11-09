@@ -18,13 +18,13 @@ type CommentConnection {
   nextToken: String
 }
 type Event {
-  #  Paginate through all comments belonging to an individual post.
-  comments(limit: Int, nextToken: String): CommentConnection
   description: String
   id: ID!
   name: String
   when: String
   where: String
+  #  Paginate through all comments belonging to an individual post.
+  comments(limit: Int, nextToken: String): CommentConnection
 }
 type EventConnection {
   items: [Event]
