@@ -99,7 +99,8 @@ custom:
       #   response: helloWorld-response-mapping-template.vtl
 
     schema: # defaults schema.graphql
-    serviceRole: "AppSyncServiceRole"
+    # serviceRole: "AppSyncServiceRole"
+    serviceRole: "AppSyncDynamoDBServiceRole"
     dataSources:
       - type: AMAZON_DYNAMODB
         name: DynamoDbCommentDS
@@ -107,20 +108,21 @@ custom:
         config:
           tableName: { Ref: DynamoDbComment }
           serviceRoleArn: { Fn::GetAtt: [AppSyncDynamoDBServiceRole, Arn] }
-          iamRoleStatements: # custom IAM Role statements for this DataSource. Ignored if `serviceRoleArn` is present. Auto-generated if both `serviceRoleArn` and `iamRoleStatements` are omitted
-            - Effect: "Allow"
-              Action:
-                - dynamodb:GetItem
-                - dynamodb:PutItem
-                - dynamodb:DeleteItem
-                - dynamodb:UpdateItem
-                - dynamodb:Query
-                - dynamodb:Scan
-              Resource:
-                # - "arn:aws:dynamodb:{REGION}:{ACCOUNT_ID}:COMMENT_TABLE:"
-                # - "arn:aws:dynamodb:{REGION}:{ACCOUNT_ID}:COMMENT_TABLE:/*"
-                - "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.COMMENT_TABLE}"
-                - "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.COMMENT_TABLE/*}"
+          # serviceRoleArn: "arn:aws:iam::#{AWS::AccountId}:role/DynamoDB-${self:custom.appSync.serviceRole}"
+          # iamRoleStatements: # custom IAM Role statements for this DataSource. Ignored if `serviceRoleArn` is present. Auto-generated if both `serviceRoleArn` and `iamRoleStatements` are omitted
+          #   - Effect: "Allow"
+          #     Action:
+          #       - dynamodb:GetItem
+          #       - dynamodb:PutItem
+          #       - dynamodb:DeleteItem
+          #       - dynamodb:UpdateItem
+          #       - dynamodb:Query
+          #       - dynamodb:Scan
+          #     Resource:
+          #       # - "arn:aws:dynamodb:#{AWS::Region}:#{AWS::AccountId}:COMMENT_TABLE:"
+          #       # - "arn:aws:dynamodb:#{AWS::Region}:#{AWS::AccountId}:COMMENT_TABLE:/*"
+          #       - "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.COMMENT_TABLE}"
+          #       - "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.COMMENT_TABLE/*}"
                
       
       - type: AMAZON_DYNAMODB
@@ -129,20 +131,21 @@ custom:
         config:
           tableName: { Ref: DynamoDbEvent }
           serviceRoleArn: { Fn::GetAtt: [AppSyncDynamoDBServiceRole, Arn] }
-          iamRoleStatements: # custom IAM Role statements for this DataSource. Ignored if `serviceRoleArn` is present. Auto-generated if both `serviceRoleArn` and `iamRoleStatements` are omitted
-            - Effect: "Allow"
-              Action:
-                - dynamodb:GetItem
-                - dynamodb:PutItem
-                - dynamodb:DeleteItem
-                - dynamodb:UpdateItem
-                - dynamodb:Query
-                - dynamodb:Scan
-              Resource:
-                # - "arn:aws:dynamodb:{REGION}:{ACCOUNT_ID}:EVENT_TABLE:"
-                # - "arn:aws:dynamodb:{REGION}:{ACCOUNT_ID}:EVENT_TABLE:/*"
-                - "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.EVENT_TABLE}"
-                - "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.EVENT_TABLE/*}"
+          # serviceRoleArn: "arn:aws:iam::#{AWS::AccountId}:role/DynamoDB-${self:custom.appSync.serviceRole}"
+          # iamRoleStatements: # custom IAM Role statements for this DataSource. Ignored if `serviceRoleArn` is present. Auto-generated if both `serviceRoleArn` and `iamRoleStatements` are omitted
+          #   - Effect: "Allow"
+          #     Action:
+          #       - dynamodb:GetItem
+          #       - dynamodb:PutItem
+          #       - dynamodb:DeleteItem
+          #       - dynamodb:UpdateItem
+          #       - dynamodb:Query
+          #       - dynamodb:Scan
+          #     Resource:
+          #       # - "arn:aws:dynamodb:#{AWS::Region}:#{AWS::AccountId}:EVENT_TABLE:"
+          #       # - "arn:aws:dynamodb:#{AWS::Region}:#{AWS::AccountId}:EVENT_TABLE:/*"
+          #       - "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.EVENT_TABLE}"
+          #       - "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.EVENT_TABLE/*}"
                
 
       # - type: AWS_LAMBDA
@@ -164,28 +167,27 @@ provider:
     STACK: ${self:service}
     REGION: ${self:custom.region}
   environment:
-    # VENDERS_TABLE: "${self:service}-${opt:stage, self:provider.stage}-venders"
-    # STAGES_TABLE: "${self:service}-${opt:stage, self:provider.stage}-stages"
-    COMMENT_TABLE: "AppSyncCommentTable-q2345"
-    EVENT_TABLE: "AppSyncEventTable-q2345"
-  iamRoleStatements:
-    - Effect: Allow
-      Action:
-        - s3:GetObject
-        - s3:PutObject
-      Resource: "*"
-    - Effect: Allow
-      Action:
-        - dynamodb:Query
-        - dynamodb:Scan
-        - dynamodb:GetItem
-        - dynamodb:PutItem
-        - dynamodb:UpdateItem
-        - dynamodb:DeleteItem
-      Resource:
-        - "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.COMMENT_TABLE}"
-        - "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.EVENT_TABLE}"
-      
+    COMMENT_TABLE: "AppSyncCommentTable-b2345"
+    EVENT_TABLE: "AppSyncEventTable-b2345"
+  # iamRoleStatements:
+  #   - Effect: Allow
+  #     Action:
+  #       - s3:GetObject
+  #       - s3:PutObject
+  #     Resource: "*"
+  #   - Effect: Allow
+  #     Action:
+  #       - dynamodb:Query
+  #       - dynamodb:Scan
+  #       - dynamodb:GetItem
+  #       - dynamodb:PutItem
+  #       - dynamodb:UpdateItem
+  #       - dynamodb:DeleteItem
+  #     Resource:
+  #       - "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.COMMENT_TABLE}"
+  #       - "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.EVENT_TABLE}"
+  #       - "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.COMMENT_TABLE/*}"
+  #       - "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.EVENT_TABLE/*}"
 
 functions: ${file(./config/functions.yml)}
 

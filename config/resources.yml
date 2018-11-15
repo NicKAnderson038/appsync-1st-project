@@ -1,11 +1,14 @@
 DynamoDbComment:
   Type: AWS::DynamoDB::Table
+  # DependsOn: DynamoDbEvent
   DeletionPolicy: Retain
   Properties:
     AttributeDefinitions:
       - AttributeName: eventId
         AttributeType: S
       - AttributeName: commentId
+        AttributeType: S
+      - AttributeName: createdAt
         AttributeType: S
     KeySchema:
       - AttributeName: eventId
@@ -21,9 +24,19 @@ DynamoDbComment:
       - Key: 'comment-key2'
         Value: 'comment-value2'
     TableName: ${self:provider.environment.COMMENT_TABLE}
+    LocalSecondaryIndexes:
+      - IndexName: LSI-AppSyncCommentTable-by-eventId-createdAt
+        KeySchema:
+          - AttributeName: eventId
+            KeyType: HASH
+          - AttributeName: createdAt
+            KeyType: RANGE
+        Projection:
+          ProjectionType: ALL
 
 DynamoDbEvent:
   Type: AWS::DynamoDB::Table
+  # DependsOn: DynamoDbComment
   DeletionPolicy: Retain
   Properties:
     AttributeDefinitions:
@@ -40,41 +53,48 @@ DynamoDbEvent:
         Value: 'event-value'
     TableName: ${self:provider.environment.EVENT_TABLE}
 
-# IAM Policy to allow working with DynamoDB
-AppSyncDynamoDBPolicy:
-  Type: "AWS::IAM::ManagedPolicy"
-  Properties:
-    Description: "Managed Policy to allow AWS AppSync to access tables in DynamoDB"
-    Path: /appsync/
-    PolicyDocument:
-      Version: "2012-10-17"
-      Statement:
-        - Effect: Allow
-          Action:
-            - dynamodb:GetItem
-            - dynamodb:PutItem
-            - dynamodb:DeleteItem
-            - dynamodb:UpdateItem
-            - dynamodb:Query
-            - dynamodb:Scan
-          Resource: 
-            # - { Fn::Join: [ '', [ { Fn::GetAtt: [ DynamoDbComment, Arn ] }, '/*' ] ] }
-            # - { Fn::Join: [ '', [ { Fn::GetAtt: [ DynamoDbEvent, Arn ] }, '/*' ] ] }
-            - "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.COMMENT_TABLE}"
-            - "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.EVENT_TABLE}"
+#### IAM Policy to allow working with DynamoDB
+# AppSyncDynamoDBPolicy:
+#   Type: "AWS::IAM::ManagedPolicy"
+#   Properties:
+#     Description: "Managed Policy to allow AWS AppSync to access tables in DynamoDB"
+#     Path: /appsync/
+#     PolicyDocument:
+#       Version: "2012-10-17"
+#       Statement:
+#         - Effect: Allow
+#           Action:
+#             - dynamodb:GetItem
+#             - dynamodb:PutItem
+#             - dynamodb:DeleteItem
+#             - dynamodb:UpdateItem
+#             - dynamodb:Query
+#             - dynamodb:Scan
+#           Resource: 
+#             # - { Fn::Join: [ '', [ { Fn::GetAtt: [ DynamoDbComment, Arn ] }, '/*' ] ] }
+#             # - { Fn::Join: [ '', [ { Fn::GetAtt: [ DynamoDbEvent, Arn ] }, '/*' ] ] }
+#             - "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.COMMENT_TABLE}"
+#             - "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.EVENT_TABLE}"
+#             - "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.COMMENT_TABLE/*}"
+#             - "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.EVENT_TABLE/*}"
+#             # - "arn:aws:dynamodb:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-dev-graphql"
+#             # - "arn:aws:dynamodb:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-dev-graphql:*"
+              
             
 
-# IAM Role for implementing the AppSync / DynamoDB policy
+#### IAM Role for implementing the AppSync / DynamoDB policy
 # DynamoDBRole:
+# AppSyncServiceRole:
 AppSyncDynamoDBServiceRole:
   Type: "AWS::IAM::Role"
   Description: "IAM Role for allowing AppSync to access DynamoDB"
-  DependsOn:
-    - AppSyncDynamoDBPolicy
+  # DependsOn:
+  #   - AppSyncDynamoDBPolicy
   Properties:
-    RoleName: "DynamoDB-${self:custom.appSync.serviceRole}-Policy"
-    ManagedPolicyArns:
-      - Ref: AppSyncDynamoDBPolicy
+    # RoleName: "DynamoDB-${self:custom.appSync.serviceRole}-Policy"
+    RoleName: "DynamoDB-${self:custom.appSync.serviceRole}"
+    # ManagedPolicyArns:
+    #   - Ref: AppSyncDynamoDBPolicy
     AssumeRolePolicyDocument:
       Version: "2012-10-17"
       Statement:
@@ -84,6 +104,30 @@ AppSyncDynamoDBServiceRole:
           Principal:
             Service:
               - appsync.amazonaws.com
+    Policies:
+      - PolicyName: "DynamoDB-${self:custom.appSync.serviceRole}-Policy"
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:PutItem
+                - dynamodb:DeleteItem
+                - dynamodb:UpdateItem
+                - dynamodb:Query
+                - dynamodb:Scan
+              Resource: 
+                - "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.COMMENT_TABLE}"
+                - "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.EVENT_TABLE}"
+                - "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.COMMENT_TABLE/*}"
+                - "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.EVENT_TABLE/*}"
+                # - "arn:aws:dynamodb:#{AWS::Region}:#{AWS::AccountId}:*:table/EVENT_TABLE"
+                # - "arn:aws:dynamodb:#{AWS::Region}:#{AWS::AccountId}:*:table/EVENT_TABLE/*"
+                # - "arn:aws:dynamodb:#{AWS::Region}:#{AWS::AccountId}:*:table/COMMENT_TABLE"
+                # - "arn:aws:dynamodb:#{AWS::Region}:#{AWS::AccountId}:*:table/COMMENT_TABLE/*"
+
+
 
 # Lambda Resource Integration
 # AppSyncLambdaServiceRole:
